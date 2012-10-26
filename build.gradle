@@ -1,0 +1,16 @@
+apply plugin: 'groovy'
+apply plugin: 'idea'
+
+repositories {
+  mavenCentral()
+  maven {
+    url "http://build-vm/nexus/content/groups/public/"
+  }
+}
+
+dependencies {
+  groovy group: 'org.codehaus.groovy', name: 'groovy', version: '1.8.4'
+  groovy group: 'com.github.groovy-wslite', name: 'groovy-wslite', version: '0.7.1'
+  groovy 'ca.uhn.hapi:hapi-base:2.0-alpha1'
+  groovy 'ca.uhn.hapi:hapi-structures-v26:2.0-alpha1'
+}
