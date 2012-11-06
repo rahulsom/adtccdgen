@@ -1,10 +1,11 @@
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
 import wslite.rest.RESTClient
 
 import java.security.SecureRandom
-import groovy.json.JsonBuilder
-import groovy.json.JsonSlurper
+import java.text.DecimalFormat
 
-class NGUtil {
+class PersonFactory {
   int maxAddresses = 200
   def lastNamesSource = new CachedFile(url: 'http://www.census.gov/genealogy/www/data/1990surnames/dist.all.last'.toURL()).text.replaceAll('\r','\n').replaceAll('\n+', '\n')
   def lastNames = lastNamesSource.split('\n').collect { it.split(' ')[0] }
@@ -37,7 +38,6 @@ class NGUtil {
             state:firstShot.find{it.types.contains('administrative_area_level_1')}.short_name,
             zipCode:firstShot.find{it.types.contains('postal_code')}.short_name,
         ]
-        retVal.street = "${retVal.streetNumber} ${retVal.streetName}"
         return retVal
       } else {
         return null
@@ -47,11 +47,11 @@ class NGUtil {
     }
   }
 
-  def addresses = []
+  List<Map> addresses = []
 
-  def getCachedAddress() {
+  Map getCachedAddress() {
     if (!addresses && new File(addressFileName).exists()) {
-      addresses = new JsonSlurper().parseText(new File(addressFileName).text)
+      addresses = new JsonSlurper().parseText(new File(addressFileName).text) as List<Map>
     }
     while(addresses.size() < 2) {
       addNewAddress()
@@ -91,19 +91,56 @@ class NGUtil {
 
   }
 
-  def getLastName() {
-    lastNames[r.nextInt(lastNames.size())]
+  Person generatePerson(boolean male) {
+    new Person(
+        firstName: male ? males[r.nextInt(males.size())] : females[r.nextInt(females.size())],
+        lastName: lastNames[r.nextInt(lastNames.size())],
+        dob: dateCenter + (int)(r.nextGaussian() * 365 * 40),
+        gender:  male ? 'M' : 'F',
+        address: new Person.Address(this.cachedAddress),
+        phone:  '408'+ new DecimalFormat('0000000').format(r.nextInt(9999999)),
+        ssn: new DecimalFormat('000000000').format(r.nextInt(999999999))
+    )
   }
 
-  def getMale() {
-    males[r.nextInt(males.size())]
+  Person generatePerson() {
+    generatePerson(r.nextBoolean())
   }
 
-  def getFemale() {
-    females[r.nextInt(females.size())]
-  }
+  class Person {
+    String firstName
+    String lastName
+    String gender
+    String phone
+    String ssn
 
-  def getDob() {
-    dateCenter + (int)(r.nextGaussian() * 365 * 40)
+    static class Address {
+      String streetNumber
+      String streetName
+      String getStreet() {
+        "${streetNumber} ${streetName}"
+      }
+      String city
+      String state
+      String zipCode
+    }
+
+    Map<String,List<String>> ids = [:]
+
+    def getId(String domain, boolean create = false) {
+      if (!ids.get(domain)) {
+        ids.put(domain, [])
+      }
+      if (ids.get(domain).isEmpty() || create) {
+        ids.get(domain) << r.nextInt(9999999)
+      }
+      ids.get(domain)
+    }
+    Date dob
+    Address address
+
+    @Override String toString() {
+      "(Person) ${firstName} ${lastName} ${gender}/${dob.format('yyyyMMdd')}"
+    }
   }
 }

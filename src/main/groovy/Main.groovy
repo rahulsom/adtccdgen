@@ -1,15 +1,15 @@
-import ca.uhn.hl7v2.app.ConnectionHub
 import ca.uhn.hl7v2.app.Connection
-import ca.uhn.hl7v2.parser.PipeParser
+import ca.uhn.hl7v2.app.ConnectionHub
 import ca.uhn.hl7v2.llp.MinLowerLayerProtocol
-import java.text.DecimalFormat
-import ca.uhn.hl7v2.parser.GenericParser
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory
 import ca.uhn.hl7v2.model.Message
-import java.security.SecureRandom
-import wslite.rest.RESTClient
-import wslite.rest.ContentType
+import ca.uhn.hl7v2.parser.CanonicalModelClassFactory
+import ca.uhn.hl7v2.parser.GenericParser
+import ca.uhn.hl7v2.parser.PipeParser
 import groovy.xml.XmlUtil
+import wslite.rest.ContentType
+import wslite.rest.RESTClient
+
+import java.security.SecureRandom
 
 /**
  * TODO Documentation.
@@ -18,48 +18,36 @@ import groovy.xml.XmlUtil
  */
 class Main {
 
-  private static final hostName = 'qa-dvorak'
-  private static final adtPort = 8888
+  private static final hostName = 'localhost'
+  private static final adtPort = 6020
   private static final clinicAddress = '560 S Winchester Blvd, San Jose CA 95128'
   private static final reps = 2
 
   public static void main(String[] args) {
-    def util = new NGUtil(maxAddresses: reps/100)
-    util.setCenter(clinicAddress)
-
     ConnectionHub connectionHub = ConnectionHub.instance;
     Connection connection = connectionHub.attach(hostName, adtPort, new PipeParser(), MinLowerLayerProtocol);
     def i = connection.initiator
     i.setTimeoutMillis(10000)
+
+    def util = new PersonFactory(maxAddresses: reps/100)
+    util.setCenter(clinicAddress)
+
+    String nsid = "MYC"
+    String oid = "1.2.3.4"
+    String domain = "${nsid}&${oid}&ISO"
+
     reps.times { index ->
       try {
-        def id = util.r.nextInt(9999999)
-        def nsid = "MYC"
-        def oid = "1.2.3.4"
-        def ln = util.lastName
-        def g = util.r.nextBoolean() ? 'M' : 'F'
-        def fn = g == 'M' ? util.male  : util.female
+        PersonFactory.Person p = util.generatePerson()
 
-        def dob = util.dob
-
-        def phone = '408'+ new DecimalFormat('0000000').format(util.r.nextInt(9999999))
-        def ssn = new DecimalFormat('000000000').format(util.r.nextInt(999999999))
-
-        def address = util.getCachedAddress()
-
-        def addressString = "${address.street}^^${address.city}^${address.state}^${address.zipCode}"
-        String messageString = """MSH|^~\\&|${nsid}|${nsid}|LABADT|MCM|20120109|SECURITY|ADT^A04|MSG00001|P|2.4
-            |EVN|A01|198808181123
-            |PID|||${id}^^^${nsid}&${oid}&ISO||${ln}^${fn}||${dob.format('yyyyMMdd')}|$g||2106-3|${addressString}|GL||||S||ADT_PID18^2^M10|$ssn|9-87654^NC
-            |NK1|1|JONES^BARBARA^K|SPO|||||20011105
-            |NK1|1|JONES^MICHAEL^A|FTH""".stripMargin().replaceAll('\n', '\r')
+        String messageString = generateAdt(p, domain)
 
         println '>  ' + messageString.replaceAll('\r', '\n>  ')
         println ''
 
         def start = System.currentTimeMillis()
-        def p = new GenericParser(new CanonicalModelClassFactory('2.6'));
-        Message adt = p.parse(messageString);
+        def parser = new GenericParser(new CanonicalModelClassFactory('2.6'));
+        Message adt = parser.parse(messageString);
 
         def resp = i.sendAndReceive(adt)
 
@@ -71,8 +59,9 @@ class Main {
         int ccdsForPatient = 3 + r.nextGaussian() * 4
         if (ccdsForPatient > 0) {
           ccdsForPatient.times {
-            def ccdText = getCcd([identifier: id, universalId: oid, firstName: fn, lastName: ln,
-                gender: g, dob: dob.format('yyyyMMdd')])
+            def id = p.getId(domain)[0]
+            def ccdText = getCcd([identifier: id, universalId: oid, firstName: p.firstName, lastName: p.lastName,
+                gender: p.gender, dob: p.dob.format('yyyyMMdd')])
 
             def ccdClient = new RESTClient("http://${hostName}/healthdock/myclinic/")
             def ccdResp = ccdClient.post(path: 'ccd.xml') {
@@ -94,6 +83,19 @@ class Main {
     connection.close()
     connectionHub.discard(connection);
 
+  }
+
+  private static String generateAdt(PersonFactory.Person p, String domain) {
+    def id = p.getId(domain)[0]
+    def phone = p.phone
+    def address = p.address
+    def addressString = "${address.street}^^${address.city}^${address.state}^${address.zipCode}"
+    String messageString = """MSH|^~\\&|MSH3|MSH4|LABADT|MCM|20120109|SECURITY|ADT^A04|MSG00001|P|2.4
+            |EVN|A01|198808181123
+            |PID|||${id}^^^${domain}||${p.lastName}^${p.firstName}||${p.dob.format('yyyyMMdd')}|${p.gender}||2106-3|${addressString}|GL||||S||ADT_PID18^2^M10|${p.ssn}|9-87654^NC
+            |NK1|1|JONES^BARBARA^K|SPO|||||20011105
+            |NK1|1|JONES^MICHAEL^A|FTH""".stripMargin().replaceAll('\n', '\r')
+    return messageString
   }
 
   private static String getCcd(Map data) {
