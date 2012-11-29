@@ -1,3 +1,7 @@
+package helpers
+
+import testdata.CcdBuilder
+
 import java.security.SecureRandom
 
 /**

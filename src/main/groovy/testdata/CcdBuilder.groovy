@@ -1,3 +1,5 @@
+package testdata
+
 import groovy.xml.MarkupBuilder
 
 /**

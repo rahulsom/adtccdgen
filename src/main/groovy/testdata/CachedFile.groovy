@@ -1,3 +1,4 @@
+package testdata
 class CachedFile {
   URL url
 

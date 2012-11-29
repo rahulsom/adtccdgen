@@ -1,3 +1,5 @@
+package testdata
+
 import ca.uhn.hl7v2.app.Connection
 import ca.uhn.hl7v2.app.ConnectionHub
 import ca.uhn.hl7v2.llp.MinLowerLayerProtocol
@@ -5,7 +7,9 @@ import ca.uhn.hl7v2.model.Message
 import ca.uhn.hl7v2.parser.CanonicalModelClassFactory
 import ca.uhn.hl7v2.parser.GenericParser
 import ca.uhn.hl7v2.parser.PipeParser
+import domain.Person
 import groovy.xml.XmlUtil
+import helpers.ImmunizationHelper
 import wslite.rest.ContentType
 import wslite.rest.RESTClient
 
@@ -38,7 +42,7 @@ class Main {
 
     reps.times { index ->
       try {
-        PersonFactory.Person p = util.generatePerson()
+        Person p = util.generatePerson()
 
         String messageString = generateAdt(p, domain)
 
@@ -85,7 +89,7 @@ class Main {
 
   }
 
-  private static String generateAdt(PersonFactory.Person p, String domain) {
+  private static String generateAdt(Person p, String domain) {
     def id = p.getId(domain)[0]
     def phone = p.phone
     def address = p.address
