@@ -22,8 +22,8 @@ import java.security.SecureRandom
  */
 class Main {
 
-  private static final hostName = 'localhost'
-  private static final adtPort = 6020
+  private static final hostName = 'qa-dvorak'
+  private static final adtPort = 8888
   private static final clinicAddress = '560 S Winchester Blvd, San Jose CA 95128'
   private static final reps = 2
 
@@ -36,8 +36,8 @@ class Main {
     def util = new PersonFactory(maxAddresses: reps/100)
     util.setCenter(clinicAddress)
 
-    String nsid = "MYC"
-    String oid = "1.2.3.4"
+    String nsid = "1003.1"
+    String oid = "2.16.4.39.2.1001.78.3.1"
     String domain = "${nsid}&${oid}&ISO"
 
     reps.times { index ->
@@ -67,7 +67,7 @@ class Main {
             def ccdText = getCcd([identifier: id, universalId: oid, firstName: p.firstName, lastName: p.lastName,
                 gender: p.gender, dob: p.dob.format('yyyyMMdd')])
 
-            def ccdClient = new RESTClient("http://${hostName}/healthdock/myclinic/")
+            def ccdClient = new RESTClient("http://${hostName}/healthdock/c1-dvorak/")
             def ccdResp = ccdClient.post(path: 'ccd.xml') {
               type ContentType.XML
               text ccdText
@@ -126,7 +126,7 @@ class Main {
 
 
         // may be add some immunizations
-        new ImmunizationHelper(r: r, ccd: ccd).addImmunizations(lastVisit)
+        ImmunizationHelper.instance.addImmunizations(ccd, lastVisit)
 
         ccd.vitals.add(new CcdBuilder.Vital(code: '46680005', codeSystem: '2.16.840.1.113883.6.96', displayName: 'Vital signs', date: lastVisit.format('yyyyMMdd'),
             components: [

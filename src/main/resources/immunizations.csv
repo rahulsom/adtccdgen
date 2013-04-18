@@ -1,0 +1,4 @@
+code,codeSystem,displayName,routeCode,routeCodeSystem,routeCodeSystemName,routeCodeDisplay
+88,2.16.840.1.113883.6.59,Influenza virus vaccine,IM,2.16.840.1.113883.5.112,RouteOfAdministration,Intramuscular injection
+33,2.16.840.1.113883.6.59,Pneumococcal polysaccharide vaccine,IM,2.16.840.1.113883.5.112,RouteOfAdministration,Intramuscular injection
+09,2.16.840.1.113883.6.59,Tetanus and diphtheria toxoids,IM,2.16.840.1.113883.5.112,RouteOfAdministration,Intramuscular injection

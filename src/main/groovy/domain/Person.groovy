@@ -1,11 +1,15 @@
 package domain
 
+import java.security.SecureRandom
+
 /**
  * TODO Documentation.
  * @author rahulsomasunderam
  * @since 11/28/12 2:18 PM
  */
 class Person {
+  private static final SecureRandom random = new SecureRandom()
+
   String firstName
   String lastName
   String gender
@@ -32,7 +36,7 @@ class Person {
       ids.put(domain, [])
     }
     if (ids.get(domain).isEmpty() || create) {
-      ids.get(domain) << r.nextInt(9999999)
+      ids.get(domain) << Person.random.nextInt(9999999)
     }
     ids.get(domain)
   }
