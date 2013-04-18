@@ -14,3 +14,9 @@ dependencies {
   groovy 'ca.uhn.hapi:hapi-base:2.0-alpha1'
   groovy 'ca.uhn.hapi:hapi-structures-v26:2.0-alpha1'
 }
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.4'
+}
+
+
