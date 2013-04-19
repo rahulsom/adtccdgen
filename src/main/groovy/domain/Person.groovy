@@ -48,4 +48,28 @@ class Person {
   String toString() {
     "(Person) ${firstName} ${lastName} ${gender}/${dob.format('yyyyMMdd')}"
   }
+
+  // add some vitals
+  final baseHeight = Person.random.nextGaussian() * 60 + 140
+  final baseWeight = 60 + Person.random.nextGaussian() * 10
+  final baseSystolic = 120 + Person.random.nextGaussian() * 10
+  final baseDiastolic = 80 + Person.random.nextGaussian() * 10
+  final baseHeartRate = 72 + Person.random.nextGaussian() * 20
+
+  int getHeight(Date d) {
+    baseHeight
+  }
+  int getWeight(Date d) {
+    baseWeight
+  }
+  int getSystolic(Date d) {
+    baseSystolic
+  }
+  int getDiastolic(Date d) {
+    baseSystolic
+  }
+  int getHeartRate (Date d) {
+    baseHeartRate
+  }
+
 }

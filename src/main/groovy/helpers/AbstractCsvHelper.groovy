@@ -19,12 +19,9 @@ abstract class AbstractCsvHelper {
     def reader = new CSVReader(stream.newReader())
     def lines = reader.readAll()
     def headers = lines.head()
-    println "Headers: ${headers}"
     def body = lines.tail()
-    println "Body: ${body}"
     data = body.collect {
       [headers, it].transpose().collectEntries {it}
     }
-    println data.join('\n')
   }
 }
