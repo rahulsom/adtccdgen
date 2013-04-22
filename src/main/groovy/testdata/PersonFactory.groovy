@@ -55,6 +55,7 @@ class PersonFactory {
   Map getCachedAddress() {
     if (!addresses && new File(addressFileName).exists()) {
       addresses = new JsonSlurper().parseText(new File(addressFileName).text) as List<Map>
+      addresses*.remove('street')
     }
     while(addresses.size() < 2) {
       addNewAddress()
