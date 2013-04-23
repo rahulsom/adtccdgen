@@ -1,12 +1,16 @@
 package testdata
 
+import groovy.transform.ToString
 import groovy.xml.MarkupBuilder
+
+import java.security.MessageDigest
 
 /**
  * TODO Documentation.
  * @author rahulsomasunderam
  * @since 10/26/12 10:01 AM
  */
+@ToString
 class CcdBuilder {
 
   def createCcd(Map data, Closure closure = null) {
@@ -1159,7 +1163,15 @@ class CcdBuilder {
         }
       }
     }
-    return sw.toString()
+    def retval = sw.toString()
+    println "CCD size: ${retval.length()}, hash: ${generateMD5 (retval)}"
+    return retval
+  }
+
+  def generateMD5(String s) {
+    MessageDigest digest = MessageDigest.getInstance("MD5")
+    digest.update(s.bytes);
+    new BigInteger(1, digest.digest()).toString(16).padLeft(32, '0')
   }
 
   void printEncounters(def builder) {
@@ -1231,6 +1243,7 @@ class CcdBuilder {
     }
   }
 
+  @ToString
   static class Immunization {
     String routeCode
     String routeCodeSystem
@@ -1242,12 +1255,15 @@ class CcdBuilder {
     String displayName
     String date
   }
+
+  @ToString
   static class Vital {
     String code
     String codeSystem
     String displayName
     String date
 
+    @ToString
     static class Component {
       String code, codeSystem, displayName
       String value, unit, type
@@ -1256,12 +1272,14 @@ class CcdBuilder {
     List<Component> components
 
   }
+  @ToString
   static class Result {
     String code
     String codeSystem
     String displayName
     String date
 
+    @ToString
     static class Component {
       String code, codeSystem, displayName
       String value, unit, type
@@ -1270,12 +1288,15 @@ class CcdBuilder {
 
     List<Component> components
   }
+  @ToString
   static class Procedure {
     String code
     String codeSystem
     String displayName
     String date
+    @ToString
     static class Qualifier {
+      @ToString
       static class CodedValue {
         String code
         String displayName
@@ -1285,6 +1306,7 @@ class CcdBuilder {
     }
     List<Qualifier> qualifiers
   }
+  @ToString
   static class Encounter {
     String code
     String codeSystem
@@ -1293,6 +1315,7 @@ class CcdBuilder {
     String docFirst
     String docLast
   }
+  @ToString
   static class Plan {
     String code
     String codeSystem

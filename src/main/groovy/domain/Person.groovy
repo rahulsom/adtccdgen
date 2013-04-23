@@ -1,11 +1,15 @@
 package domain
 
+import java.security.SecureRandom
+
 /**
  * TODO Documentation.
  * @author rahulsomasunderam
  * @since 11/28/12 2:18 PM
  */
 class Person {
+  private static final SecureRandom random = new SecureRandom()
+
   String firstName
   String lastName
   String gender
@@ -32,7 +36,7 @@ class Person {
       ids.put(domain, [])
     }
     if (ids.get(domain).isEmpty() || create) {
-      ids.get(domain) << r.nextInt(9999999)
+      ids.get(domain) << Person.random.nextInt(9999999)
     }
     ids.get(domain)
   }
@@ -44,4 +48,28 @@ class Person {
   String toString() {
     "(Person) ${firstName} ${lastName} ${gender}/${dob.format('yyyyMMdd')}"
   }
+
+  // add some vitals
+  final baseHeight = Person.random.nextGaussian() * 60 + 140
+  final baseWeight = 60 + Person.random.nextGaussian() * 10
+  final baseSystolic = 120 + Person.random.nextGaussian() * 10
+  final baseDiastolic = 80 + Person.random.nextGaussian() * 10
+  final baseHeartRate = 72 + Person.random.nextGaussian() * 20
+
+  int getHeight(Date d) {
+    baseHeight
+  }
+  int getWeight(Date d) {
+    baseWeight
+  }
+  int getSystolic(Date d) {
+    baseSystolic
+  }
+  int getDiastolic(Date d) {
+    baseSystolic
+  }
+  int getHeartRate (Date d) {
+    baseHeartRate
+  }
+
 }

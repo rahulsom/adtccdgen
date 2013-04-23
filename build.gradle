@@ -13,4 +13,11 @@ dependencies {
   groovy group: 'com.github.groovy-wslite', name: 'groovy-wslite', version: '0.7.1'
   groovy 'ca.uhn.hapi:hapi-base:2.0-alpha1'
   groovy 'ca.uhn.hapi:hapi-structures-v26:2.0-alpha1'
+  groovy 'net.sf.opencsv:opencsv:2.3'
 }
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.4'
+}
+
+
