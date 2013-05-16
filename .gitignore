@@ -4,3 +4,9 @@ build
 *.iws
 .gradle
 .gradletasknamecache
+
+*.json
+dist.all.last
+dist.female.first
+dist.male.first
+timing.txt

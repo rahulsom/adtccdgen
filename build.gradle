@@ -1,5 +1,8 @@
 apply plugin: 'groovy'
 apply plugin: 'idea'
+apply plugin:'application'
+
+mainClassName = "testdata.Main"
 
 repositories {
   mavenCentral()

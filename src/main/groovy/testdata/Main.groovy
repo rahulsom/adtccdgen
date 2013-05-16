@@ -58,6 +58,7 @@ class Main {
 
         println '<  ' + resp.encode().replaceAll('\r', '\n<  ')
         println "Time: ${System.currentTimeMillis() - start} ms"
+        addTiming(System.currentTimeMillis() - start)
         println '\n\n'
 
         def r = new SecureRandom()
@@ -179,5 +180,18 @@ class Main {
       }
 
     }
+  }
+
+  private static addTiming(def timing) {
+    File file = new File("timing.txt")
+
+    boolean append = true
+    FileWriter fileWriter = new FileWriter(file, append)
+    BufferedWriter buffWriter = new BufferedWriter(fileWriter)
+
+    buffWriter.write "${timing}\n"
+
+    buffWriter.flush()
+    buffWriter.close()    
   }
 }
