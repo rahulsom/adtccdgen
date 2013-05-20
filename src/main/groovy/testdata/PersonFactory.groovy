@@ -99,7 +99,7 @@ class PersonFactory {
     new Person(
         firstName: male ? males[r.nextInt(males.size())] : females[r.nextInt(females.size())],
         lastName: lastNames[r.nextInt(lastNames.size())],
-        dob: dateCenter + (int)(r.nextGaussian() * 365 * 40),
+        dob: dateCenter + (int)(r.nextDouble() * 365 * 40),
         gender:  male ? 'M' : 'F',
         address: new Person.Address(this.cachedAddress),
         phone:  '408'+ new DecimalFormat('0000000').format(r.nextInt(9999999)),

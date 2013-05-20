@@ -50,19 +50,21 @@ class Main {
         println '>  ' + messageString.replaceAll('\r', '\n>  ')
         println ''
 
-        def start = System.currentTimeMillis()
         def parser = new GenericParser(new CanonicalModelClassFactory('2.6'));
         Message adt = parser.parse(messageString);
 
+        def start = System.currentTimeMillis()
         def resp = i.sendAndReceive(adt)
+        def timing = System.currentTimeMillis() - start
 
         println '<  ' + resp.encode().replaceAll('\r', '\n<  ')
-        println "Time: ${System.currentTimeMillis() - start} ms"
-        addTiming(System.currentTimeMillis() - start)
+        println "Time: ${timing} ms"
+        addTiming(timing)
         println '\n\n'
 
         def r = new SecureRandom()
         int ccdsForPatient = 3 + r.nextGaussian() * 4
+        println "Sending ${ccdsForPatient} CCDs from patient..."
         if (ccdsForPatient > 0) {
           ccdsForPatient.times {
             def id = p.getId(domain)[0]
@@ -98,9 +100,7 @@ class Main {
     def addressString = "${address.street}^^${address.city}^${address.state}^${address.zipCode}"
     String messageString = """MSH|^~\\&|MSH3|MSH4|LABADT|MCM|20120109|SECURITY|ADT^A04|MSG00001|P|2.4
             |EVN|A01|198808181123
-            |PID|||${id}^^^${domain}||${p.lastName}^${p.firstName}||${p.dob.format('yyyyMMdd')}|${p.gender}||2106-3|${addressString}|GL||||S||ADT_PID18^2^M10|${p.ssn}|9-87654^NC
-            |NK1|1|JONES^BARBARA^K|SPO|||||20011105
-            |NK1|1|JONES^MICHAEL^A|FTH""".stripMargin().replaceAll('\n', '\r')
+            |PID|||${id}^^^${domain}||${p.lastName}^${p.firstName}||${p.dob.format('yyyyMMdd')}|${p.gender}||2106-3|${addressString}|GL||||S||ADT_PID18^2^M10|${p.ssn}|9-87654^NC""".stripMargin().replaceAll('\n', '\r')
     return messageString
   }
 

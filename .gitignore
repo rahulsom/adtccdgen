@@ -9,4 +9,7 @@ build
 dist.all.last
 dist.female.first
 dist.male.first
-timing.txt
+timing*.txt
+hist.png
+ma.png
+time.png
