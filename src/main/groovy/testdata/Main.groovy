@@ -1,20 +1,15 @@
 package testdata
 
-import ca.uhn.hl7v2.app.Connection
-import ca.uhn.hl7v2.app.ConnectionHub
-import ca.uhn.hl7v2.llp.MinLowerLayerProtocol
-import ca.uhn.hl7v2.model.Message
-import ca.uhn.hl7v2.parser.CanonicalModelClassFactory
-import ca.uhn.hl7v2.parser.GenericParser
-import ca.uhn.hl7v2.parser.PipeParser
 import domain.Person
 import groovy.xml.XmlUtil
 import helpers.ImmunizationHelper
 import helpers.ResultGroupsHelper
+import senders.AdtSender
 import wslite.rest.ContentType
 import wslite.rest.RESTClient
 
 import java.security.SecureRandom
+import java.text.DecimalFormat
 
 /**
  * TODO Documentation.
@@ -23,55 +18,45 @@ import java.security.SecureRandom
  */
 class Main {
 
-  private static final hostName = 'qa-dvorak'
-  private static final adtPort = 8888
+  static facilities = [
+      clinic:
+          [host: 'qa-dvorak', port: 8888, ns: '1003.1', uid: '2.16.4.39.2.1001.78.3.1', nn: 'c1-dvorak'],
+      hospital:
+          [host: 'qa-dvorak', port: 8890, ns: '1003.2', uid: '2.16.4.39.2.1001.78.3.2', nn: 'h1-dvorak'],
+      lab:
+          [host: 'qa-dvorak', port: 8892, ns: '1003.3', uid: '2.16.4.39.2.1001.78.3.3', nn: 'l1-dvorak'],
+  ]
+
   private static final clinicAddress = '560 S Winchester Blvd, San Jose CA 95128'
-  private static final reps = 2
+  private static patients = 100
+
+  private static getFullId(Person person, Map facility) {
+    def domain = "${facility.ns}&${facility.uid}&ISO"
+    def id = person.getId(domain)[0]
+    "${id}^^^${domain}"
+  }
 
   public static void main(String[] args) {
-    ConnectionHub connectionHub = ConnectionHub.instance;
-    Connection connection = connectionHub.attach(hostName, adtPort, new PipeParser(), MinLowerLayerProtocol);
-    def i = connection.initiator
-    i.setTimeoutMillis(10000)
 
-    def util = new PersonFactory(maxAddresses: reps / 100)
+    def util = new PersonFactory(maxAddresses: patients / 100)
     util.setCenter(clinicAddress)
 
-    String nsid = "1003.1"
-    String oid = "2.16.4.39.2.1001.78.3.1"
-    String domain = "${nsid}&${oid}&ISO"
-
-    reps.times { index ->
+    patients.times { index ->
+      def start = System.currentTimeMillis()
       try {
         Person p = util.generatePerson()
-
-        String messageString = generateAdt(p, domain)
-
-        println '>  ' + messageString.replaceAll('\r', '\n>  ')
-        println ''
-
-        def parser = new GenericParser(new CanonicalModelClassFactory('2.6'));
-        Message adt = parser.parse(messageString);
-
-        def start = System.currentTimeMillis()
-        def resp = i.sendAndReceive(adt)
-        def timing = System.currentTimeMillis() - start
-
-        println '<  ' + resp.encode().replaceAll('\r', '\n<  ')
-        println "Time: ${timing} ms"
-        addTiming(timing)
-        println '\n\n'
+        new AdtSender().send(facilities.clinic.host, facilities.clinic.port,p, getFullId(p, facilities.clinic))
 
         def r = new SecureRandom()
-        int ccdsForPatient = 3 + r.nextGaussian() * 4
+        int ccdsForPatient = 0//3 + r.nextDouble() * 4
         println "Sending ${ccdsForPatient} CCDs from patient..."
         if (ccdsForPatient > 0) {
           ccdsForPatient.times {
-            def id = p.getId(domain)[0]
+            def id = 'A' + new DecimalFormat('00000000').format(index + 10000000)
             def ccdText = getCcd([identifier: id, universalId: oid, firstName: p.firstName, lastName: p.lastName,
                 gender: p.gender, dob: p.dob.format('yyyyMMdd')], p)
 
-            def ccdClient = new RESTClient("http://${hostName}/healthdock/c1-dvorak/")
+            def ccdClient = new RESTClient("http://${hostName}/hl/pamf-mtv/")
             def ccdResp = ccdClient.post(path: 'ccd.xml') {
               type ContentType.XML
               text ccdText
@@ -83,25 +68,12 @@ class Main {
       } catch (Exception e) {
         println "Missed chance"
         e.printStackTrace()
+        sleep 100000
       } finally {
-        println "Completed (${index + 1}/${reps})"
+        println "Completed (${index + 1}/${patients})"
       }
     }
 
-    connection.close()
-    connectionHub.discard(connection);
-
-  }
-
-  private static String generateAdt(Person p, String domain) {
-    def id = p.getId(domain)[0]
-    def phone = p.phone
-    def address = p.address
-    def addressString = "${address.street}^^${address.city}^${address.state}^${address.zipCode}"
-    String messageString = """MSH|^~\\&|MSH3|MSH4|LABADT|MCM|20120109|SECURITY|ADT^A04|MSG00001|P|2.4
-            |EVN|A01|198808181123
-            |PID|||${id}^^^${domain}||${p.lastName}^${p.firstName}||${p.dob.format('yyyyMMdd')}|${p.gender}||2106-3|${addressString}|GL||||S||ADT_PID18^2^M10|${p.ssn}|9-87654^NC""".stripMargin().replaceAll('\n', '\r')
-    return messageString
   }
 
   private static String getCcd(Map data, Person person) {
@@ -182,16 +154,23 @@ class Main {
     }
   }
 
-  private static addTiming(def timing) {
-    File file = new File("timing.txt")
+  public static time(String filename, Closure closure) {
+    def start = System.nanoTime()
+    def retval = closure.call()
+    def stop = System.nanoTime()
+    long timing = stop - start
+    synchronized (this) {
+      File file = new File(filename)
+      boolean append = true
+      FileWriter fileWriter = new FileWriter(file, append)
+      BufferedWriter buffWriter = new BufferedWriter(fileWriter)
 
-    boolean append = true
-    FileWriter fileWriter = new FileWriter(file, append)
-    BufferedWriter buffWriter = new BufferedWriter(fileWriter)
+      println "Time: ${timing/1000000} ms"
+      buffWriter.write("${timing/1000000}\n")
+      buffWriter.flush()
+      buffWriter.close()
+    }
 
-    buffWriter.write "${timing}\n"
-
-    buffWriter.flush()
-    buffWriter.close()    
+    retval
   }
 }
