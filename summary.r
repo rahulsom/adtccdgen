@@ -12,9 +12,12 @@ bins <- max(log10(responseTime))*15
 png(filename='build/hist.png',width=1024, height=796)
 h <- hist(log10(responseTime), breaks=bins)$counts
 
+minLog <- min(log10(rawData[, 1]))
+maxLog <- max(log10(rawData[, 1]))
+
 hist(log10(responseTime), col=heat.colors(bins), breaks=bins)
 text(
-  round(max(log10(rawData[, 1])/1.5)), max(h)/2, 
+  minLog + (maxLog - minLog) * 0.66, max(h)/2,
   paste(
     "Samples =", length(rawData[, 1]), 
     "\nMean =", round(mean(rawData[, 1]),2), 
