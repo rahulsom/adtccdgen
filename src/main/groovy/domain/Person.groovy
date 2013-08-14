@@ -1,5 +1,7 @@
 package domain
 
+import helpers.IdGenerator
+
 import java.security.SecureRandom
 
 /**
@@ -36,7 +38,7 @@ class Person {
       ids.put(domain, [])
     }
     if (ids.get(domain).isEmpty() || create) {
-      ids.get(domain) << Person.random.nextInt(9999999)
+      ids.get(domain) << IdGenerator.nextId
     }
     ids.get(domain)
   }
@@ -66,7 +68,7 @@ class Person {
     baseSystolic
   }
   int getDiastolic(Date d) {
-    baseSystolic
+    baseDiastolic
   }
   int getHeartRate (Date d) {
     baseHeartRate
