@@ -1,4 +1,11 @@
 package testdata
+
+/**
+ * Creates a file representing a URL. This is helpful when you need to access a file
+ * whose URL you know, but it is too huge and you need it every time you run.
+ *
+ * @author rahulsomasunderam
+ */
 class CachedFile {
   URL url
 
