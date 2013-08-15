@@ -2,6 +2,7 @@ package testdata
 
 import groovy.transform.ToString
 import groovy.xml.MarkupBuilder
+import helpers.IdGenerator
 
 import java.security.MessageDigest
 
@@ -32,7 +33,7 @@ class CcdBuilder {
         'xsi:schemaLocation': 'urn:hl7-org:v3CDA.xsd', xmlns: 'urn:hl7-org:v3') {
       typeId(root: '2.16.840.1.113883.1.3', extension: 'POCD_HD000040')
       templateId(root: '2.16.840.1.113883.10.20.1')
-      id(root: 'db734647-fc99-424c-a864-7e3cda82e703')
+      id(root: data.universalId, extension: IdGenerator.nextId)
       code(code: '34133-9', codeSystem: '2.16.840.1.113883.6.1', displayName: 'Summarization of episode note')
       title('Good Health Clinic Continuity of Care Document')
       effectiveTime(value: '20000407130000+0500')
