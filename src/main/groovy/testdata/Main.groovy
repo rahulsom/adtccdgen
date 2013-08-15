@@ -45,7 +45,7 @@ class Main {
 
         def r = new SecureRandom()
         int ccdsForPatient = r.nextDouble() * 4 - 2
-        println "Sending ${ccdsForPatient} CCDs from patient..."
+        println "Sending ${ccdsForPatient > 0? ccdsForPatient: 0} CCDs from patient..."
         if (ccdsForPatient > 0) {
           ccdsForPatient.times {
             new CcdSender().send(p, theFacility)
