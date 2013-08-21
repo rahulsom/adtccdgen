@@ -16,7 +16,8 @@ import java.security.SecureRandom
  * @author rahulsomasunderam
  */
 class CcdSender {
-  def send(Person p, Map theFacility) {
+  def send(Person p, Main.Facility theFacility) {
+    println "Sending CCD to ${theFacility}\n\n"
     def ccdText = getCcd([identifier: p.getId("${theFacility.ns}&${theFacility.uid}&ISO")[0],
                              universalId: theFacility.uid,
                              firstName: p.firstName, lastName: p.lastName, gender: p.gender,
@@ -24,13 +25,17 @@ class CcdSender {
 
     def ccdClient = new RESTClient("http://${theFacility.host}/hl/${theFacility.nn}/")
 
-    def ccdResp = Main.time('ccd.txt') {
-      ccdClient.post(path: 'ccd.xml') {
-        type ContentType.XML
-        text ccdText
+    try {
+      def ccdResp = Main.time('ccd.txt') {
+        ccdClient.post(path: 'ccd.xml') {
+          type ContentType.XML
+          text ccdText
+        }
       }
+      println "CCD Response: ${XmlUtil.serialize(ccdResp.xml)}"
+    } catch (Exception e) {
+      e.printStackTrace()
     }
-    println XmlUtil.serialize(ccdResp.xml)
 
   }
 

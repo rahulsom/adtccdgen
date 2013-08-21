@@ -16,7 +16,17 @@ import testdata.Main
  * @author rahulsomasunderam
  */
 class AdtSender {
-  def send(String host, int port, Person p, String id) {
+
+  String getFullId(Person person, Main.Facility facility) {
+    def id = person.getId(facility.domain)[0]
+    "${id}^^^${facility.domain}"
+  }
+
+
+  def send(Person p, Main.Facility theFacility) {
+    def host = theFacility.host
+    def port = theFacility.port
+    def id = getFullId(p, theFacility)
     ConnectionHub connectionHub = ConnectionHub.instance;
     Connection connection = connectionHub.attach(host, port, new PipeParser(), MinLowerLayerProtocol);
     def i = connection.initiator
