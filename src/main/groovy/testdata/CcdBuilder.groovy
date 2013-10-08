@@ -1,6 +1,7 @@
 package testdata
 
 import groovy.transform.ToString
+import groovy.util.logging.Log4j
 import groovy.xml.MarkupBuilder
 import helpers.IdGenerator
 
@@ -12,6 +13,7 @@ import java.security.MessageDigest
  * @since 10/26/12 10:01 AM
  */
 @ToString
+@Log4j
 class CcdBuilder {
 
   def createCcd(Map data, Closure closure = null) {
@@ -1165,7 +1167,7 @@ class CcdBuilder {
       }
     }
     def retval = sw.toString()
-    println "CCD size: ${retval.length()}, hash: ${generateMD5 (retval)}"
+    log.debug "CCD size: ${retval.length()}, hash: ${generateMD5 (retval)}"
     return retval
   }
 

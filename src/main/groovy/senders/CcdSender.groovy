@@ -1,6 +1,7 @@
 package senders
 
 import domain.Person
+import groovy.util.logging.Log4j
 import groovy.xml.XmlUtil
 import helpers.ImmunizationHelper
 import helpers.ResultGroupsHelper
@@ -15,9 +16,9 @@ import java.security.SecureRandom
  * Sends CCD to specified facility.
  * @author rahulsomasunderam
  */
+@Log4j
 class CcdSender {
   def send(Person p, Main.Facility theFacility) {
-    println "Sending CCD to ${theFacility}\n\n"
     def ccdText = getCcd([identifier: p.getId("${theFacility.ns}&${theFacility.uid}&ISO")[0],
                              universalId: theFacility.uid,
                              firstName: p.firstName, lastName: p.lastName, gender: p.gender,
@@ -25,16 +26,18 @@ class CcdSender {
 
     def ccdClient = new RESTClient("http://${theFacility.host}/hl/${theFacility.nn}/")
 
-    try {
-      def ccdResp = Main.time('ccd.txt') {
-        ccdClient.post(path: 'ccd.xml') {
+    Main.time("${theFacility.host}.${theFacility.nn}.ccd.txt") {Main.BooleanHolder h ->
+      try {
+        def ccdResp = ccdClient.post(path: 'ccd.xml') {
           type ContentType.XML
           text ccdText
         }
+        log.debug "CCD Response: ${XmlUtil.serialize(ccdResp.xml)}"
+        log.info "CCD - ${p} - ${ccdResp.response.statusCode}"
+      } catch (Exception e) {
+        log.error "CCD - ${p} - ERROR", e
+        h.value = false
       }
-      println "CCD Response: ${XmlUtil.serialize(ccdResp.xml)}"
-    } catch (Exception e) {
-      e.printStackTrace()
     }
 
   }

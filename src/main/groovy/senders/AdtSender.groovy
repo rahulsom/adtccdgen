@@ -8,6 +8,7 @@ import ca.uhn.hl7v2.parser.CanonicalModelClassFactory
 import ca.uhn.hl7v2.parser.GenericParser
 import ca.uhn.hl7v2.parser.PipeParser
 import domain.Person
+import groovy.util.logging.Log4j
 import helpers.IdGenerator
 import testdata.Main
 
@@ -15,6 +16,7 @@ import testdata.Main
  * Sends an ADT for given person
  * @author rahulsomasunderam
  */
+@Log4j
 class AdtSender {
 
   String getFullId(Person person, Main.Facility facility) {
@@ -43,13 +45,17 @@ class AdtSender {
     def parser = new GenericParser(new CanonicalModelClassFactory('2.6'));
     Message adt = parser.parse(messageString);
 
-    Main.time('adt.txt') {
-      println '>  ' + messageString.replaceAll('\r', '\n>  ')
-      println ''
-      def resp = i.sendAndReceive(adt)
-      println '<  ' + resp.encode().replaceAll('\r', '\n<  ')
+    Main.time("${theFacility.host}.${theFacility.nn}.adt.txt") { Main.BooleanHolder h ->
+      try {
+        log.debug '>  ' + messageString.replaceAll('\r', '\n>  ')
+        def resp = parser.parse(i.sendAndReceive(adt).encode())
+        log.debug  '<  ' + resp.encode().replaceAll('\r', '\n<  ')
+        log.info "ADT - ${p} - ${resp.MSA.acknowledgmentCode.encode()}"
+      } catch (Exception e) {
+        log.error "ADT - ${p} - ERROR", e
+        h.value = false
+      }
     }
-    println '\n\n'
 
     connection.close()
     connectionHub.discard(connection);

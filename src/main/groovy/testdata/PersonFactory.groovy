@@ -3,11 +3,13 @@ package testdata
 import domain.Person
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
+import groovy.util.logging.Log4j
 import wslite.rest.RESTClient
 
 import java.security.SecureRandom
 import java.text.DecimalFormat
 
+@Log4j
 class PersonFactory {
   int maxAddresses = 200
   def lastNamesSource = new CachedFile(url: 'http://www.census.gov/genealogy/www/data/1990surnames/dist.all.last'.toURL()).text.replaceAll('\r','\n').replaceAll('\n+', '\n')
@@ -26,7 +28,7 @@ class PersonFactory {
 
   def generateAddress() {
     try {
-      println "Generating address"
+      log.debug "Generating address"
       def latlng = [ cityCenter[0] + r.nextGaussian()*0.2,cityCenter[1] + r.nextGaussian()*0.2 ]
 
       def geocoder = new RESTClient('http://maps.googleapis.com/maps/api/geocode')
@@ -88,9 +90,9 @@ class PersonFactory {
       if (retVal && retVal[0] && retVal[1]) {
         cityCenter = retVal
       }
-      println "Center Set"
+      log.info "Center Set"
     } else {
-      println resp.contentAsString
+      log.error resp.contentAsString
     }
 
   }

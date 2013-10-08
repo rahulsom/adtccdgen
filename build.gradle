@@ -2,7 +2,7 @@ apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin:'application'
 
-mainClassName = "testdata.Main"
+mainClassName = "testdata.GenerateCsv"
 
 repositories {
   mavenCentral()
@@ -17,6 +17,7 @@ dependencies {
   groovy 'ca.uhn.hapi:hapi-base:2.0-alpha1'
   groovy 'ca.uhn.hapi:hapi-structures-v26:2.0-alpha1'
   groovy 'net.sf.opencsv:opencsv:2.3'
+  groovy 'log4j:log4j:1.2.16'
 }
 
 task wrapper(type: Wrapper) {
