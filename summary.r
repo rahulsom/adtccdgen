@@ -8,12 +8,12 @@
 rawData <- read.csv('build/timing.txt', header = F)
 
 responseTime = as.matrix(rawData)
-bins <- max(log10(responseTime))*15
+bins <- max(log10(abs(responseTime)))*15
 png(filename='build/hist.png',width=1024, height=796)
-h <- hist(log10(responseTime), breaks=bins)$counts
+h <- hist(log10(abs(responseTime)), breaks=bins)$counts
 
-minLog <- min(log10(rawData[, 1]))
-maxLog <- max(log10(rawData[, 1]))
+minLog <- min(log10(abs(rawData[, 1])))
+maxLog <- max(log10(abs(rawData[, 1])))
 
 hist(log10(responseTime), col=heat.colors(bins), breaks=bins)
 text(
@@ -39,7 +39,7 @@ plot(responseTime, type="h", col="blue")
 dev.off()
 
 ma <- function(x,n=100){filter(x,rep(1/n,n), sides=2)}
-avgRespTime <- ma(responseTime)
+avgRespTime <- ma(abs(responseTime))
 png(filename='build/ma.png',width=1024, height=796)
 plot(avgRespTime, type="l", col="purple")
 dev.off()
